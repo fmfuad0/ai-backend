@@ -1,40 +1,47 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from transformers import pipeline
+from ctransformers import AutoModelForCausalLM
 
 app = FastAPI()
 
-generator = pipeline(
-    "text-generation",
-    model="Salesforce/codegen-350M-mono",
-    device=-1
+# Load small GGUF model (very important)
+model = AutoModelForCausalLM.from_pretrained(
+    "TheBloke/TinyLlama-1.1B-Chat-GGUF",
+    model_file="tinyllama-1.1b-chat.Q2_K.gguf",  # low memory version
+    model_type="llama",
+    gpu_layers=0
 )
 
-class Query(BaseModel):
+class EditRequest(BaseModel):
     code: str
     instruction: str
 
+class ChatRequest(BaseModel):
+    message: str
+
+@app.get("/")
+def root():
+    return {"status": "running"}
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    output = model(req.message, max_new_tokens=150)
+    return {"response": output}
+
 @app.post("/edit")
-def edit_code(query: Query):
+def edit(req: EditRequest):
     prompt = f"""
 You are a coding assistant.
 
-Modify the given code based on instruction.
-
-Return ONLY the updated code.
+Modify code based on instruction.
 
 Instruction:
-{query.instruction}
+{req.instruction}
 
 Code:
-{query.code}
+{req.code}
 """
 
-    result = generator(prompt, max_length=400, temperature=0.3)
-    output = result[0]["generated_text"]
+    output = model(prompt, max_new_tokens=200)
 
-    # crude cleanup
-    if "Code:" in output:
-        output = output.split("Code:")[-1]
-
-    return {"edited_code": output.strip()}
+    return {"edited_code": output}
