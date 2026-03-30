@@ -2,6 +2,7 @@ import os
 import requests
 
 MODEL_PATH = "tinyllama.gguf"
+
 if not os.path.exists(MODEL_PATH):
     print("Downloading TinyLlama model...")
     url = "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q2_K.gguf"
@@ -11,4 +12,4 @@ if not os.path.exists(MODEL_PATH):
                 f.write(chunk)
     print("Model downloaded successfully!")
 else:
-    print("Model already exists.")
+    print("Model already exists")
