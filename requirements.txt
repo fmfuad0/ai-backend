@@ -2,3 +2,6 @@ fastapi
 uvicorn
 ctransformers
 requests
+sentence-transformers
+faiss-cpu
+python-multipart
